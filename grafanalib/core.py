@@ -555,6 +555,64 @@ class Template(object):
 
 
 @attr.s
+class CustomTemplate(object):
+    """Template create a new 'variable' for the dashboard, defines the variable
+    name, human name, query to fetch the values and the default value.
+
+        :param default: the default value for the variable
+        :param label: the variable's human label
+        :param name: the variable's name
+        :param query: the query users to fetch the valid values of the variable
+        :param allValue: specify a custom all value with regex,
+            globs or lucene syntax.
+        :param includeAll: Add a special All option whose value includes
+            all options.
+        :param multi: If enabled, the variable will support the selection of
+            multiple options at the same time.
+    """
+
+    default = attr.ib()
+    name = attr.ib()
+    label = attr.ib(default=None)
+    allValue = attr.ib(default=None)
+    includeAll = attr.ib(
+        default=False,
+        validator=instance_of(bool),
+    )
+    multi = attr.ib(
+        default=False,
+        validator=instance_of(bool),
+    )
+    args = attr.ib(default=attr.Factory(list))
+
+    def options(self):
+        opt = list()
+        for elem in self.args:
+            opt.append(
+                {"selected": True if elem == self.default else False, "text": elem, "value": elem}
+            )
+        return opt
+
+    def to_json_data(self):
+        return {
+            'allValue': self.allValue,
+            'current': {
+                'selected': True,
+                'text': self.default,
+                'value': self.default,
+            },
+            'hide': 0,
+            'includeAll': self.includeAll,
+            'label': self.label,
+            'multi': self.multi,
+            'name': self.name,
+            'options': self.options(),
+            'query': ','.join(self.args),
+            'type': 'custom'
+        }
+
+
+@attr.s
 class Templating(object):
     list = attr.ib(default=attr.Factory(list))
 
